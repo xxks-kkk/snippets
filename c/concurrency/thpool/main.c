@@ -3,6 +3,8 @@
  * - how to use "thpool.h"
  * - how to pass data into several threads
  */
+// https://stackoverflow.com/questions/12411942/pread-and-pwrite-not-defined
+#define _XOPEN_SOURCE 500
 
 #include "thpool.h"
 #include <fcntl.h>
