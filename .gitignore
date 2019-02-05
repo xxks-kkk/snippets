@@ -16,7 +16,6 @@ scratch
 cmake-build-debug/
 *.dSYM
 cmake_install.cmake
-Makefile
 CMakeCache.txt
 CMakeFiles/
 gdb.txt
