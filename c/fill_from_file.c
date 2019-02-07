@@ -51,11 +51,12 @@ int main() {
     int num_read =
         fill_from_file(filename, &buffer, i * buffer_size, buffer_size);
     for (int j = 0; j < num_read; j++) {
+      // file `filename` and file `outname`'s content should be the same
       assert(buffer[j] == content[i * buffer_size + j]);
       fputc(buffer[j], out);
     }
   }
+  free(buffer);
   fclose(out);
-  // file `filename` and file `outname`'s content should be the same
   return 0;
 }
