@@ -1,7 +1,11 @@
 #include <assert.h>
+#include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 // Reference:
 // https://stackoverflow.com/questions/3747086/reading-the-whole-text-file-into-a-char-array-in-c
@@ -12,22 +16,25 @@
  * Fill in the buffer with content from file `filename` from start position
  * `start_pos` and the following size `usize` (in bytes)
  */
-char *fill_from_file(char *filename, uint32_t start_pos, uint32_t size) {
-  char *buffer = (char *)malloc(sizeof(char) * size);
+int fill_from_file(char *filename, char **buffer, uint32_t start_pos,
+                   uint32_t size) {
   FILE *fp;
+  int fd, num_read;
   fp = fopen(filename, "r");
   if (!fp) {
+    // cannot open the file
     perror(filename);
     exit(1);
   }
+  // no need to check start_pos as read() will return 0 for eof
   fseek(fp, start_pos, SEEK_SET);
-  if (fread(buffer, size, 1, fp) != 1) {
+  fd = fileno(fp);
+  if ((num_read = read(fd, *buffer, size)) == -1) {
     fclose(fp);
-    free(buffer);
     fputs("read fails", stderr);
     exit(1);
   }
-  return buffer;
+  return num_read;
 }
 
 int main() {
@@ -38,15 +45,15 @@ int main() {
   fputs(content, fp);
   fclose(fp);
   FILE *out = fopen(outname, "w+");
-  char *buffer;
-  int buffer_size = 2;
-  for (int i = 0; i < 14 / buffer_size; i++) {
-    buffer = fill_from_file(filename, i * buffer_size, buffer_size);
-    for (int j = 0; j < buffer_size; j++) {
+  int buffer_size = 3;
+  char *buffer = (char *)malloc(sizeof(char) * buffer_size);
+  for (int i = 0; i < 14; i++) {
+    int num_read =
+        fill_from_file(filename, &buffer, i * buffer_size, buffer_size);
+    for (int j = 0; j < num_read; j++) {
       assert(buffer[j] == content[i * buffer_size + j]);
       fputc(buffer[j], out);
     }
-    free(buffer);
   }
   fclose(out);
   // file `filename` and file `outname`'s content should be the same
